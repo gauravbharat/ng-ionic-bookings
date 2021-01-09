@@ -5,17 +5,27 @@ import { PlacesPage } from './places.page';
 
 const routes: Routes = [
   {
+    path: 'tabs',
+    component: PlacesPage,
+    children: [
+      {
+        path: 'discover',
+        loadChildren: () =>
+          import('./discover/discover.module').then(
+            (m) => m.DiscoverPageModule
+          ),
+      },
+      {
+        path: 'offers',
+        loadChildren: () =>
+          import('./offers/offers.module').then((m) => m.OffersPageModule),
+      },
+    ],
+  },
+  {
     path: '',
-    component: PlacesPage
+    redirectTo: 'tabs/discover',
   },
-  {
-    path: 'discover',
-    loadChildren: () => import('./discover/discover.module').then( m => m.DiscoverPageModule)
-  },
-  {
-    path: 'offers',
-    loadChildren: () => import('./offers/offers.module').then( m => m.OffersPageModule)
-  }
 ];
 
 @NgModule({
