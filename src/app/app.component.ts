@@ -31,6 +31,6 @@ export class AppComponent {
 
   onLogout(): void {
     this._authService.logout();
-    this._router.navigateByUrl('/places/tabs/discover');
+    this._router.navigateByUrl('/auth');
   }
 }

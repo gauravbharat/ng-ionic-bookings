@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { ModalController, NavController } from '@ionic/angular';
+
+import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
 import { Place } from '../../place.model';
 import { PlacesService } from '../../places.service';
 
@@ -13,7 +15,8 @@ export class PlaceDetailPage implements OnInit {
   constructor(
     private _placesService: PlacesService,
     private _navController: NavController,
-    private _activatedRoute: ActivatedRoute
+    private _activatedRoute: ActivatedRoute,
+    private _modalController: ModalController
   ) {}
   place: Place;
 
@@ -32,6 +35,29 @@ export class PlaceDetailPage implements OnInit {
     // this._router.navigateByUrl('/places/tabs/discover');
     // Use Nav Controller, which under the hood uses angular router
     // but displays a backward animation than default forward
-    this._navController.navigateBack('/places/tabs/discover');
+    // this._navController.navigateBack('/places/tabs/discover');
+    /** Open Modal instead of routing using Modal controller */
+    this._modalController
+      .create({
+        component: CreateBookingComponent,
+        componentProps: { selectedPlace: this.place },
+        id: 'booking',
+      })
+      .then((modalEl) => {
+        modalEl.present();
+        return modalEl.onDidDismiss();
+      })
+      .then((resultData) => {
+        console.log(
+          'resultData.data:',
+          resultData.data,
+          'resultData.role:',
+          resultData.role
+        );
+
+        if (resultData.role === 'confirm') {
+          console.log('BOOKED!');
+        }
+      });
   }
 }
