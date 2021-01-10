@@ -1,5 +1,13 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <!-- Use defaultHref for back button because if this app is used in web browser and this detail
+      page is loaded, the ionic navigation stack would be refreshed and ionic won't know where to go
+    back. -->
+      <ion-back-button
+        [defaultHref]="['/places/tabs/offers/', place.id]"
+      ></ion-back-button>
+    </ion-buttons>
     <ion-title>Edit Offer</ion-title>
   </ion-toolbar>
 </ion-header>
