@@ -1,9 +1,17 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <!-- Use defaultHref for back button because if this app is used in web browser and this detail
+      page is loaded, the ionic navigation stack would be refreshed and ionic won't know where to go
+    back. -->
+      <ion-back-button defaultHref="/places/tabs/offers"></ion-back-button>
+    </ion-buttons>
     <ion-title>offer-bookings</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-
+<ion-content class="ion-padding">
+  <ion-button color="primary" class="ion-margin" (click)="onBookOffer()"
+    >Book</ion-button
+  >
 </ion-content>
