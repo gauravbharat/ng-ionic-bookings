@@ -1,3 +1,40 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <!-- Add sidebar -->
+  <!-- For multiple menus, assign a menu id to ion-menu which can then 
+    be used in the menu attribute inside the ion-menu-item of a child page-->
+  <ion-menu side="start">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title> PairBnB </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-menu-toggle>
+          <ion-item lines="none" routerLink="/places/tabs/discover">
+            <ion-icon name="business" slot="start"></ion-icon>
+            <ion-label>Discover Places</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <ion-menu-toggle>
+          <ion-item lines="none" routerLink="/bookings">
+            <ion-icon name="checkbox-outline" slot="start"></ion-icon>
+            <ion-label>Your Bookings</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+
+        <ion-menu-toggle>
+          <ion-item lines="none" (click)="onLogout()">
+            <ion-icon name="exit" slot="start"></ion-icon>
+            <ion-label>Logout</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+  <!-- Add 'main' attribute to this main router outlet because ionic would look for 
+  this attribute when it toggle the ion-menu. Then the menu would render itself on the
+main router outlet for whichever page is loaded there -->
+  <ion-router-outlet main></ion-router-outlet>
 </ion-app>
