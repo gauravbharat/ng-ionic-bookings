@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, NavController } from '@ionic/angular';
+import {
+  ActionSheetController,
+  ModalController,
+  NavController,
+} from '@ionic/angular';
 
 import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
 import { Place } from '../../place.model';
@@ -16,7 +20,8 @@ export class PlaceDetailPage implements OnInit {
     private _placesService: PlacesService,
     private _navController: NavController,
     private _activatedRoute: ActivatedRoute,
-    private _modalController: ModalController
+    private _modalController: ModalController,
+    private _actionSheetController: ActionSheetController
   ) {}
   place: Place;
 
@@ -32,10 +37,37 @@ export class PlaceDetailPage implements OnInit {
   }
 
   onBookPlace(): void {
+    this._actionSheetController
+      .create({
+        header: 'Choose an Action',
+        buttons: [
+          {
+            text: 'Select Date',
+            handler: () => {
+              this.openBookingModal('select');
+            },
+          },
+          {
+            text: 'Random Date',
+            handler: () => {
+              this.openBookingModal('random');
+            },
+          },
+          { text: 'Cancel', role: 'cancel' },
+          // {text: 'Cancel', role: 'destructive'}
+        ],
+      })
+      .then((actionSheetEl) => actionSheetEl.present());
+
     // this._router.navigateByUrl('/places/tabs/discover');
     // Use Nav Controller, which under the hood uses angular router
     // but displays a backward animation than default forward
     // this._navController.navigateBack('/places/tabs/discover');
+  }
+
+  openBookingModal(mode: 'select' | 'random') {
+    console.log('openBookingModal() : mode', mode);
+
     /** Open Modal instead of routing using Modal controller */
     this._modalController
       .create({
