@@ -19,18 +19,7 @@
         <ion-list>
           <ion-item-sliding *ngFor="let offer of offers" #slidingItem>
             <!-- Add detail on ion-item for the forward arrow -->
-            <ion-item
-              [routerLink]="['/', 'places', 'tabs', 'offers', offer?.id]"
-              detail
-            >
-              <ion-thumbnail slot="start">
-                <ion-img [src]="offer?.imageUrl"></ion-img>
-              </ion-thumbnail>
-              <ion-label>
-                <h2>{{offer?.title}}</h2>
-                <p>{{offer?.description}}</p>
-              </ion-label>
-            </ion-item>
+            <app-offer-item [offer]="offer"></app-offer-item>
             <ion-item-options side="end">
               <ion-item-option
                 color="secondary"
