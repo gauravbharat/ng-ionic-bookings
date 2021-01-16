@@ -17,7 +17,19 @@
           <ion-list>
             <ion-item>
               <ion-label position="floating">E-mail</ion-label>
-              <ion-input ngModel name="email" email required></ion-input>
+              <ion-input
+                ngModel
+                name="email"
+                email
+                required
+                #emailCtrl="ngModel"
+              ></ion-input>
+            </ion-item>
+            <ion-item
+              *ngIf="!emailCtrl.valid && emailCtrl.touched"
+              lines="none"
+            >
+              <ion-label>Should be a valid email address.</ion-label>
             </ion-item>
 
             <ion-item>
@@ -28,7 +40,14 @@
                 name="password"
                 required
                 minlength="6"
+                #pwdCtrl="ngModel"
               ></ion-input>
+            </ion-item>
+            <ion-item *ngIf="!pwdCtrl.valid && pwdCtrl.touched" lines="none">
+              <ion-label
+                >Should be a valid password with at least 6
+                characters.</ion-label
+              >
             </ion-item>
           </ion-list>
         </ion-col>
@@ -37,7 +56,12 @@
         <ion-col size-sm="6" offset-sm="3">
           <!-- expand = full would have no rounded edges and would expand to full container width -->
           <!-- expand = block would have rounded edges -->
-          <ion-button type="button" color="primary" fill="clear" expand="full"
+          <ion-button
+            type="button"
+            color="primary"
+            fill="clear"
+            expand="full"
+            [disabled]="isLoading || !f.valid"
             >Switch to Login</ion-button
           >
           <ion-button
@@ -45,7 +69,7 @@
             color="primary"
             expand="block"
             (click)="onLogin()"
-            [disabled]="isLoading"
+            [disabled]="isLoading || !f.valid"
           >
             Login
           </ion-button>
