@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth/auth.service';
 import { Place } from '../place.model';
 import { PlacesService } from '../places.service';
 
@@ -11,14 +12,20 @@ import { PlacesService } from '../places.service';
 export class DiscoverPage implements OnInit, OnDestroy {
   loadedPlaces: Place[];
   listedLoadedPlaces: Place[];
+  relevantPlaces: Place[];
+  private _filter = 'all';
+
   private _placesSub: Subscription;
 
-  constructor(private _placesService: PlacesService) {}
+  constructor(
+    private _placesService: PlacesService,
+    private _authService: AuthService
+  ) {}
 
   ngOnInit() {
     this._placesSub = this._placesService.places.subscribe((places) => {
       this.loadedPlaces = places;
-      this.listedLoadedPlaces = this.loadedPlaces.slice(1);
+      this.onFilterUpdate(this._filter);
       console.log('this.loadedPlaces', this.loadedPlaces);
     });
   }
@@ -27,8 +34,30 @@ export class DiscoverPage implements OnInit, OnDestroy {
     this._placesSub?.unsubscribe();
   }
 
-  onFilterUpdate(event: CustomEvent): void {
-    console.log(event.detail);
+  onFilterUpdate(filter: string): void {
+    // if (filter === 'all') {
+    //   this.relevantPlaces = this.loadedPlaces;
+    //   this.listedLoadedPlaces = this.relevantPlaces.slice(1);
+    // } else {
+    //   this.relevantPlaces = this.loadedPlaces.filter(
+    //     (place) => place.userId !== this._authService.userId
+    //   );
+    //   this.listedLoadedPlaces = this.relevantPlaces?.slice(1);
+    // }
+
+    const isShown = (place) =>
+      filter === 'all' || place.userId !== this._authService.userId;
+    this.relevantPlaces = this.loadedPlaces.filter(isShown);
+    this.listedLoadedPlaces = this.relevantPlaces?.slice(1);
+    this._filter = filter;
+
+    /** 
+     * this.authService.userId.pipe(take(1)).subscribe(userId => {
+    const isShown = place => filter === 'all' || place.userId !== userId;
+    this.relevantPlaces = this.loadedPlaces.filter(isShown);
+    this.filter = filter;
+  });
+     */
   }
 
   // onViewWillEnter() {
