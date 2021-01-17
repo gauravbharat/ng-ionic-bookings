@@ -112,28 +112,33 @@ export class PlacesService {
   }
 
   updatePlace(placeId: string, title: string, description: string) {
-    return this.places.pipe(
+    let updatedPlaces: Place[];
+    this.places.pipe(
       take(1),
-      delay(1000),
-      tap((places) => {
+      switchMap((places) => {
         const index = places.findIndex((pl) => pl.id === placeId);
+        updatedPlaces = [...places];
+        const oldData = updatedPlaces[index];
+        updatedPlaces[index] = new Place(
+          oldData.id,
+          title,
+          description,
+          oldData.imageUrl,
+          oldData.price,
+          oldData.availableFrom,
+          oldData.availableTo,
+          oldData.userId
+        );
 
-        if (index !== -1) {
-          const updatedPlaces = [...places];
-          const oldData = updatedPlaces[index];
-          updatedPlaces[index] = new Place(
-            oldData.id,
-            title,
-            description,
-            oldData.imageUrl,
-            oldData.price,
-            oldData.availableFrom,
-            oldData.availableTo,
-            oldData.userId
-          );
-
-          this._places.next(updatedPlaces);
-        }
+        return (
+          this._http.put(
+            `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json`,
+            { ...updatedPlaces[index], id: null }
+          ),
+          tap(() => {
+            this._places.next(updatedPlaces);
+          })
+        );
       })
     );
   }
