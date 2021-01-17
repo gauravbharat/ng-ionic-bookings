@@ -12,7 +12,7 @@ export class OfferItemComponent implements OnInit {
 
   ngOnInit() {}
 
-  getDummyDate(): Date {
-    return new Date();
-  }
+  // getDummyDate(): Date {
+  //   return new Date();
+  // }
 }

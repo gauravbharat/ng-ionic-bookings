@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { LoadingController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
+
 import { PlacesService } from '../../places.service';
 
 @Component({
@@ -8,10 +11,15 @@ import { PlacesService } from '../../places.service';
   templateUrl: './new-offer.page.html',
   styleUrls: ['./new-offer.page.scss'],
 })
-export class NewOfferPage implements OnInit {
+export class NewOfferPage implements OnInit, OnDestroy {
   form: FormGroup;
+  private _createPlaceSub: Subscription;
 
-  constructor(private _placesService: PlacesService, private _router: Router) {}
+  constructor(
+    private _placesService: PlacesService,
+    private _router: Router,
+    private _loadingController: LoadingController
+  ) {}
 
   ngOnInit() {
     this.form = new FormGroup({
@@ -38,18 +46,33 @@ export class NewOfferPage implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this._createPlaceSub?.unsubscribe();
+  }
+
   onCreateOffer(): void {
     if (!this.form) return;
     console.log('Creating offer...', this.form);
-    this._placesService.addPlace(
-      this.form.value.title,
-      this.form.value.description,
-      +this.form.value.price,
-      new Date(this.form.value.dateFrom),
-      new Date(this.form.value.dateTo)
-    );
 
-    this.form.reset();
-    this._router.navigate(['/places/tabs/offers']);
+    this._loadingController
+      .create({
+        message: 'Creating place...',
+      })
+      .then((loadingEl) => {
+        loadingEl.present();
+        this._createPlaceSub = this._placesService
+          .addPlace(
+            this.form.value.title,
+            this.form.value.description,
+            +this.form.value.price,
+            new Date(this.form.value.dateFrom),
+            new Date(this.form.value.dateTo)
+          )
+          .subscribe(() => {
+            loadingEl.dismiss();
+            this.form.reset();
+            this._router.navigate(['/places/tabs/offers']);
+          });
+      });
   }
 }
