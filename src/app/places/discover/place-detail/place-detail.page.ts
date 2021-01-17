@@ -7,6 +7,7 @@ import {
   NavController,
 } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth/auth.service';
 import { BookingService } from 'src/app/bookings/booking.service';
 
 import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
@@ -20,6 +21,7 @@ import { PlacesService } from '../../places.service';
 })
 export class PlaceDetailPage implements OnInit, OnDestroy {
   place: Place;
+  isBookable = false;
   private _placeSub: Subscription;
 
   constructor(
@@ -30,7 +32,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     private _actionSheetController: ActionSheetController,
     private _bookingService: BookingService,
     private _loadingController: LoadingController,
-    private _router: Router
+    private _authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -42,7 +44,10 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
 
       this._placeSub = this._placesService
         .getPlace(paramMap.get('placeId'))
-        .subscribe((place) => (this.place = place));
+        .subscribe((place) => {
+          this.place = place;
+          this.isBookable = place.userId !== this._authService.userId;
+        });
     });
   }
 
