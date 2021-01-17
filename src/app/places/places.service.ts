@@ -113,7 +113,7 @@ export class PlacesService {
 
   updatePlace(placeId: string, title: string, description: string) {
     let updatedPlaces: Place[];
-    this.places.pipe(
+    return this.places.pipe(
       take(1),
       switchMap((places) => {
         const index = places.findIndex((pl) => pl.id === placeId);
