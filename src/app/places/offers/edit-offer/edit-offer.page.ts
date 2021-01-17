@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { NavController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { LoadingController, NavController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { Place } from '../../place.model';
 import { PlacesService } from '../../places.service';
@@ -15,11 +15,14 @@ export class EditOfferPage implements OnInit, OnDestroy {
   place: Place;
   form: FormGroup;
   private _placeSub: Subscription;
+  private _updateSub: Subscription;
 
   constructor(
     private _activatedRoute: ActivatedRoute,
     private _placesService: PlacesService,
-    private _navController: NavController
+    private _navController: NavController,
+    private _loadingController: LoadingController,
+    private _router: Router
   ) {}
 
   ngOnInit() {
@@ -47,11 +50,32 @@ export class EditOfferPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._placeSub?.unsubscribe();
+    this._updateSub?.unsubscribe();
   }
 
   onUpdateOffer(): void {
     if (!this.form) return;
 
     console.log('updateing offer...', this.form);
+
+    this._loadingController
+      .create({
+        message: 'Updating offer...',
+      })
+      .then((loadingEl) => {
+        loadingEl.present();
+
+        this._updateSub = this._placesService
+          .updatePlace(
+            this.place.id,
+            this.form.get('title').value,
+            this.form.get('description').value
+          )
+          .subscribe(() => {
+            loadingEl.dismiss();
+            this.form.reset();
+            this._router.navigate(['/places/tabs/offers']);
+          });
+      });
   }
 }
