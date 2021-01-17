@@ -1,4 +1,7 @@
 import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { take, map } from 'rxjs/operators';
+
 import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 
@@ -6,7 +9,7 @@ import { Place } from './place.model';
   providedIn: 'root',
 })
 export class PlacesService {
-  private _places: Place[] = [
+  private _places = new BehaviorSubject<Place[]>([
     new Place(
       'p1',
       'Manhattan Mansion',
@@ -37,16 +40,21 @@ export class PlacesService {
       new Date('2021-12-31'),
       'abc'
     ),
-  ];
+  ]);
 
   constructor(private _authService: AuthService) {}
 
   get places() {
-    return [...this._places];
+    return this._places.asObservable();
   }
 
-  getPlace(id: string): Place {
-    return { ...this._places.find((p) => p.id === id) };
+  getPlace(id: string): Observable<Place> {
+    return this.places.pipe(
+      take(1),
+      map((places) => {
+        return { ...places.find((p) => p.id === id) };
+      })
+    );
   }
 
   addPlace(
@@ -67,6 +75,8 @@ export class PlacesService {
       this._authService.userId
     );
 
-    this._places.push(newPlace);
+    this.places
+      .pipe(take(1))
+      .subscribe((places) => this._places.next(places.concat(newPlace)));
   }
 }

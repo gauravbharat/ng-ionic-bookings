@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NavController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import { Place } from '../../place.model';
 import { PlacesService } from '../../places.service';
 
@@ -10,9 +11,10 @@ import { PlacesService } from '../../places.service';
   templateUrl: './edit-offer.page.html',
   styleUrls: ['./edit-offer.page.scss'],
 })
-export class EditOfferPage implements OnInit {
+export class EditOfferPage implements OnInit, OnDestroy {
   place: Place;
   form: FormGroup;
+  private _placeSub: Subscription;
 
   constructor(
     private _activatedRoute: ActivatedRoute,
@@ -27,16 +29,24 @@ export class EditOfferPage implements OnInit {
         return;
       }
 
-      this.place = this._placesService.getPlace(paramMap.get('placeId'));
-      this.form = new FormGroup({
-        title: new FormControl(this.place.title, {
-          validators: [Validators.required],
-        }),
-        description: new FormControl(this.place.description, {
-          validators: [Validators.required, Validators.maxLength(180)],
-        }),
-      });
+      this._placeSub = this._placesService
+        .getPlace(paramMap.get('placeId'))
+        .subscribe((place) => {
+          this.place = place;
+          this.form = new FormGroup({
+            title: new FormControl(this.place.title, {
+              validators: [Validators.required],
+            }),
+            description: new FormControl(this.place.description, {
+              validators: [Validators.required, Validators.maxLength(180)],
+            }),
+          });
+        });
     });
+  }
+
+  ngOnDestroy(): void {
+    this._placeSub?.unsubscribe();
   }
 
   onUpdateOffer(): void {
