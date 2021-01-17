@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
 import { Place } from './place.model';
 
 @Injectable({
@@ -13,7 +14,8 @@ export class PlacesService {
       'https://imgs.6sqft.com/wp-content/uploads/2014/06/21042534/Felix_Warburg_Mansion_007.jpg',
       149.99,
       new Date('2021-01-16'),
-      new Date('2021-12-31')
+      new Date('2021-12-31'),
+      'abc'
     ),
     new Place(
       'p2',
@@ -22,7 +24,8 @@ export class PlacesService {
       'https://www.jetsetter.com/wp-content/uploads/sites/7/2018/04/OYZG5PLW-1090x690.jpeg',
       189.99,
       new Date('2021-01-16'),
-      new Date('2021-12-31')
+      new Date('2021-12-31'),
+      'abc'
     ),
     new Place(
       'p3',
@@ -31,9 +34,12 @@ export class PlacesService {
       'https://cdn.suwalls.com/wallpapers/nature/foggy-path-to-the-mansion-36709-1920x1200.jpg',
       99.99,
       new Date('2021-01-16'),
-      new Date('2021-12-31')
+      new Date('2021-12-31'),
+      'abc'
     ),
   ];
+
+  constructor(private _authService: AuthService) {}
 
   get places() {
     return [...this._places];
@@ -43,5 +49,24 @@ export class PlacesService {
     return { ...this._places.find((p) => p.id === id) };
   }
 
-  constructor() {}
+  addPlace(
+    title: string,
+    description: string,
+    price: number,
+    dateFrom: Date,
+    dateTo: Date
+  ) {
+    const newPlace = new Place(
+      Math.random().toString(),
+      title,
+      description,
+      'https://imgs.6sqft.com/wp-content/uploads/2014/06/21042534/Felix_Warburg_Mansion_007.jpg',
+      price,
+      dateFrom,
+      dateTo,
+      this._authService.userId
+    );
+
+    this._places.push(newPlace);
+  }
 }
