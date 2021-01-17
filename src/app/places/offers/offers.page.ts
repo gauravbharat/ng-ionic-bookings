@@ -11,6 +11,7 @@ import { PlacesService } from '../places.service';
 })
 export class OffersPage implements OnInit, OnDestroy {
   offers: Place[];
+  isLoading = false;
   private _placesSub: Subscription;
 
   constructor(
@@ -27,6 +28,13 @@ export class OffersPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._placesSub?.unsubscribe();
+  }
+
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this._placesService.fetchPlaces().subscribe(() => {
+      this.isLoading = false;
+    });
   }
 
   onEdit(offerId: string, slidingItem: IonItemSliding): void {
