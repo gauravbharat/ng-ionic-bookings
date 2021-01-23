@@ -5,12 +5,12 @@
       page is loaded, the ionic navigation stack would be refreshed and ionic won't know where to go
     back. -->
       <ion-back-button
-        [defaultHref]="['/places/tabs/offers/', place.id]"
+        [defaultHref]="['/places/tabs/offers/', placeId]"
       ></ion-back-button>
     </ion-buttons>
     <ion-title>Edit Offer</ion-title>
     <ion-buttons slot="primary">
-      <ion-button (click)="onUpdateOffer()" [disabled]="!form.valid">
+      <ion-button (click)="onUpdateOffer()" [disabled]="!form?.valid">
         <ion-icon name="checkmark" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -18,7 +18,10 @@
 </ion-header>
 
 <ion-content>
-  <form [formGroup]="form">
+  <div *ngIf="isLoading" class="ion-text-center">
+    <ion-spinner color="primary"></ion-spinner>
+  </div>
+  <form [formGroup]="form" *ngIf="!isLoading">
     <ion-grid>
       <ion-row>
         <ion-col size-sm="6" offset-sm="3">

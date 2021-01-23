@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LoadingController, NavController } from '@ionic/angular';
+import {
+  AlertController,
+  LoadingController,
+  NavController,
+} from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { Place } from '../../place.model';
 import { PlacesService } from '../../places.service';
@@ -12,7 +16,9 @@ import { PlacesService } from '../../places.service';
   styleUrls: ['./edit-offer.page.scss'],
 })
 export class EditOfferPage implements OnInit, OnDestroy {
+  isLoading = false;
   place: Place;
+  placeId: string;
   form: FormGroup;
   private _placeSub: Subscription;
   private _updateSub: Subscription;
@@ -22,6 +28,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
     private _placesService: PlacesService,
     private _navController: NavController,
     private _loadingController: LoadingController,
+    private _alertController: AlertController,
     private _router: Router
   ) {}
 
@@ -32,9 +39,10 @@ export class EditOfferPage implements OnInit, OnDestroy {
         return;
       }
 
-      this._placeSub = this._placesService
-        .getPlace(paramMap.get('placeId'))
-        .subscribe((place) => {
+      this.placeId = paramMap.get('placeId');
+      this.isLoading = true;
+      this._placeSub = this._placesService.getPlace(this.placeId).subscribe(
+        (place) => {
           this.place = place;
           this.form = new FormGroup({
             title: new FormControl(this.place.title, {
@@ -44,7 +52,27 @@ export class EditOfferPage implements OnInit, OnDestroy {
               validators: [Validators.required, Validators.maxLength(180)],
             }),
           });
-        });
+          this.isLoading = false;
+        },
+        (error) => {
+          this._alertController
+            .create({
+              header: 'An error occurred',
+              message: 'Place coud not be fetched. Please try again later.',
+              buttons: [
+                {
+                  text: 'Okay',
+                  handler: () => {
+                    this._router.navigate(['/places/tabs/offers']);
+                  },
+                },
+              ],
+            })
+            .then((alertEl) => {
+              alertEl.present();
+            });
+        }
+      );
     });
   }
 

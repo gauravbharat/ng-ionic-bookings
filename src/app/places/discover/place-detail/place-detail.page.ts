@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ActionSheetController,
+  AlertController,
   LoadingController,
   ModalController,
   NavController,
@@ -20,7 +21,9 @@ import { PlacesService } from '../../places.service';
   styleUrls: ['./place-detail.page.scss'],
 })
 export class PlaceDetailPage implements OnInit, OnDestroy {
+  isLoading = false;
   place: Place;
+  placeId: string;
   isBookable = false;
   private _placeSub: Subscription;
 
@@ -32,7 +35,9 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     private _actionSheetController: ActionSheetController,
     private _bookingService: BookingService,
     private _loadingController: LoadingController,
-    private _authService: AuthService
+    private _authService: AuthService,
+    private _alertController: AlertController,
+    private _router: Router
   ) {}
 
   ngOnInit() {
@@ -42,12 +47,34 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         return;
       }
 
-      this._placeSub = this._placesService
-        .getPlace(paramMap.get('placeId'))
-        .subscribe((place) => {
+      this.placeId = paramMap.get('placeId');
+      this.isLoading = true;
+
+      this._placeSub = this._placesService.getPlace(this.placeId).subscribe(
+        (place) => {
           this.place = place;
           this.isBookable = place.userId !== this._authService.userId;
-        });
+          this.isLoading = false;
+        },
+        (error) => {
+          this._alertController
+            .create({
+              header: 'An error occurred',
+              message: 'Could not load place.',
+              buttons: [
+                {
+                  text: 'Okay',
+                  handler: () => {
+                    this._router.navigate(['/places/tabs/discover']);
+                  },
+                },
+              ],
+            })
+            .then((alertEl) => {
+              alertEl.present();
+            });
+        }
+      );
     });
   }
 

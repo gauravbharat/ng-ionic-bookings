@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { of } from 'rxjs';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 
@@ -61,13 +62,25 @@ export class PlacesService {
       );
   }
 
-  getPlace(id: string): Observable<Place> {
-    return this.places.pipe(
-      take(1),
-      map((places) => {
-        return { ...places.find((p) => p.id === id) };
-      })
-    );
+  getPlace(placeId: string): Observable<Place> {
+    return this._http
+      .get<Place>(
+        `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json`
+      )
+      .pipe(
+        map((placeData) => {
+          return new Place(
+            placeId,
+            placeData.title,
+            placeData.description,
+            placeData.imageUrl,
+            placeData.price,
+            new Date(placeData.availableFrom),
+            new Date(placeData.availableTo),
+            placeData.userId
+          );
+        })
+      );
   }
 
   addPlace(
@@ -116,6 +129,13 @@ export class PlacesService {
     return this.places.pipe(
       take(1),
       switchMap((places) => {
+        if (!places || places.length <= 0) {
+          return this.fetchPlaces();
+        } else {
+          return of(places);
+        }
+      }),
+      switchMap((places) => {
         const index = places.findIndex((pl) => pl.id === placeId);
         updatedPlaces = [...places];
         const oldData = updatedPlaces[index];
@@ -130,15 +150,13 @@ export class PlacesService {
           oldData.userId
         );
 
-        return (
-          this._http.put(
-            `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json`,
-            { ...updatedPlaces[index], id: null }
-          ),
-          tap(() => {
-            this._places.next(updatedPlaces);
-          })
+        return this._http.put(
+          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json`,
+          { ...updatedPlaces[index], id: null }
         );
+      }),
+      tap(() => {
+        this._places.next(updatedPlaces);
       })
     );
   }
