@@ -1,4 +1,11 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import {
   Plugins,
   Capacitor,
@@ -15,8 +22,10 @@ import { AlertController, Platform } from '@ionic/angular';
 export class ImagePickerComponent implements OnInit {
   isLoading = false;
   selectedImage: string;
+  usePicker = false;
 
   @Output() imagePick = new EventEmitter<string>();
+  @ViewChild('filePicker') filePicker: ElementRef<HTMLInputElement>;
 
   constructor(
     private _alertController: AlertController,
@@ -29,10 +38,18 @@ export class ImagePickerComponent implements OnInit {
     console.log('iOS', this.platform.is('ios'));
     console.log('Android', this.platform.is('android'));
     console.log('Desktop', this.platform.is('desktop'));
+
+    if (
+      (this.platform.is('mobile') && !this.platform.is('hybrid')) ||
+      this.platform.is('desktop')
+    ) {
+      this.usePicker = true;
+    }
   }
 
   async onPickImage() {
-    if (!Capacitor.isPluginAvailable('Camera')) {
+    if (!Capacitor.isPluginAvailable('Camera') || this.usePicker) {
+      this.filePicker.nativeElement.click();
       return;
     }
 
@@ -51,5 +68,20 @@ export class ImagePickerComponent implements OnInit {
     } catch (error) {
       console.log(error, 'error on image capture');
     }
+  }
+
+  onFileChosen($event: Event) {
+    const pickedFile = (<HTMLInputElement>$event.target).files[0];
+
+    if (!pickedFile) {
+      return;
+    }
+
+    const fr = new FileReader();
+    fr.onload = () => {
+      const dataUrl = fr.result.toString();
+      this.selectedImage = dataUrl;
+    };
+    fr.readAsDataURL(pickedFile);
   }
 }
