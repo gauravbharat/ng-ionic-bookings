@@ -5,7 +5,7 @@ import {
   CameraSource,
   CameraResultType,
 } from '@capacitor/core';
-import { AlertController } from '@ionic/angular';
+import { AlertController, Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-image-picker',
@@ -18,9 +18,18 @@ export class ImagePickerComponent implements OnInit {
 
   @Output() imagePick = new EventEmitter<string>();
 
-  constructor(private _alertController: AlertController) {}
+  constructor(
+    private _alertController: AlertController,
+    private platform: Platform
+  ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    console.log('Mobile', this.platform.is('mobile'));
+    console.log('Hybrid', this.platform.is('hybrid'));
+    console.log('iOS', this.platform.is('ios'));
+    console.log('Android', this.platform.is('android'));
+    console.log('Desktop', this.platform.is('desktop'));
+  }
 
   async onPickImage() {
     if (!Capacitor.isPluginAvailable('Camera')) {
