@@ -10,6 +10,7 @@ import { PlacesService } from '../places.service';
   styleUrls: ['./discover.page.scss'],
 })
 export class DiscoverPage implements OnInit, OnDestroy {
+  isLoading = false;
   loadedPlaces: Place[];
   listedLoadedPlaces: Place[];
   relevantPlaces: Place[];
@@ -27,6 +28,13 @@ export class DiscoverPage implements OnInit, OnDestroy {
       this.loadedPlaces = places;
       this.onFilterUpdate(this._filter);
       console.log('this.loadedPlaces', this.loadedPlaces);
+    });
+  }
+
+  onViewWillEnter() {
+    this.isLoading = true;
+    this._placesService.fetchPlaces().subscribe(() => {
+      this.isLoading = false;
     });
   }
 
