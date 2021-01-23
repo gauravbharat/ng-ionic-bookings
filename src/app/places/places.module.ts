@@ -7,14 +7,10 @@ import { IonicModule } from '@ionic/angular';
 import { PlacesPageRoutingModule } from './places-routing.module';
 
 import { PlacesPage } from './places.page';
+import { ImagePickerComponent } from '../shared/pickers/image-picker/image-picker.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonicModule,
-    PlacesPageRoutingModule
-  ],
-  declarations: [PlacesPage]
+  imports: [CommonModule, FormsModule, IonicModule, PlacesPageRoutingModule],
+  declarations: [PlacesPage],
 })
 export class PlacesPageModule {}
