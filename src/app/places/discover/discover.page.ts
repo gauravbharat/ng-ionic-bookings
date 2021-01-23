@@ -4,6 +4,9 @@ import { AuthService } from 'src/app/auth/auth.service';
 import { Place } from '../place.model';
 import { PlacesService } from '../places.service';
 
+import { Plugins, Capacitor } from '@capacitor/core';
+import { AlertController } from '@ionic/angular';
+
 @Component({
   selector: 'app-discover',
   templateUrl: './discover.page.html',
@@ -20,7 +23,8 @@ export class DiscoverPage implements OnInit, OnDestroy {
 
   constructor(
     private _placesService: PlacesService,
-    private _authService: AuthService
+    private _authService: AuthService,
+    private _alertController: AlertController
   ) {}
 
   ngOnInit() {
@@ -40,6 +44,45 @@ export class DiscoverPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._placesSub?.unsubscribe();
+  }
+
+  private _showErrorAlert(message?: string) {
+    this._alertController
+      .create({
+        header: 'Could not fetch location',
+        message: `Please use the map to pick a location! ${
+          message ? 'Error Message: ' + message : ''
+        }`,
+        buttons: [{ text: 'Close', role: 'cancel', cssClass: 'secondary' }],
+      })
+      .then((alertEl) => {
+        alertEl.present();
+      });
+  }
+
+  async onLocateUser() {
+    if (!Capacitor.isPluginAvailable('Geolocation')) {
+      this._showErrorAlert();
+      return;
+    }
+
+    this.isLoading = true;
+    await Plugins.Geolocation.getCurrentPosition()
+      .then((geoPosition) => {
+        console.log('geoPosition', geoPosition);
+        const coordinates = {
+          lat: geoPosition.coords.latitude,
+          long: geoPosition.coords.longitude,
+        };
+
+        console.log('coordinates', coordinates);
+        this.isLoading = false;
+      })
+      .catch((error) => {
+        console.log('geolocaiton error: ', error);
+        this.isLoading = false;
+        this._showErrorAlert();
+      });
   }
 
   onFilterUpdate(filter: string): void {
