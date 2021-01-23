@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { delay, take, tap } from 'rxjs/operators';
@@ -8,17 +9,7 @@ import { Booking } from './booking.model';
 export class BookingService {
   private _bookings = new BehaviorSubject<Booking[]>([]);
 
-  constructor(private _authService: AuthService) {}
-
-  // [
-  //   {
-  //     id: 'xyz',
-  //     placeId: 'p1',
-  //     placeTitle: 'Manhattan Mansion',
-  //     guestNumber: 2,
-  //     userId: 'abc',
-  //   },
-  // ];
+  constructor(private _authService: AuthService, private _http: HttpClient) {}
 
   get bookings(): Observable<Booking[]> {
     return this._bookings.asObservable();
