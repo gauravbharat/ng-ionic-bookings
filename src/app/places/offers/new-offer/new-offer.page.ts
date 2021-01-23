@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { base64toBlob } from 'src/app/shared/util';
 
 import { PlacesService } from '../../places.service';
 
@@ -43,6 +44,7 @@ export class NewOfferPage implements OnInit, OnDestroy {
         // updateOn: 'blur', //update when control lose focus
         validators: [Validators.required],
       }),
+      image: new FormControl(null),
     });
   }
 
@@ -51,8 +53,10 @@ export class NewOfferPage implements OnInit, OnDestroy {
   }
 
   onCreateOffer(): void {
-    if (!this.form) return;
+    if (!this.form || !this.form.get('image').value) return;
     console.log('Creating offer...', this.form);
+
+    console.log('image value', this.form.get('image').value);
 
     this._loadingController
       .create({
@@ -76,7 +80,25 @@ export class NewOfferPage implements OnInit, OnDestroy {
       });
   }
 
-  onImagePicked() {
-    //
+  async onImagePicked(imageData: string | File) {
+    let imageFile;
+
+    if (typeof imageData === 'string') {
+      try {
+        imageFile = await base64toBlob(
+          imageData.replace('data:image/jpeg;base64,', ''),
+          'image/jpeg'
+        );
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    } else {
+      imageFile = imageData;
+    }
+
+    this.form.patchValue({
+      image: imageFile,
+    });
   }
 }
