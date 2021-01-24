@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
-import { AuthService } from './auth.service';
+import { AlertController, LoadingController } from '@ionic/angular';
+import { AuthResponseData, AuthService } from './auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -16,7 +16,8 @@ export class AuthPage implements OnInit {
   constructor(
     private _authService: AuthService,
     private _router: Router,
-    private _loadingController: LoadingController
+    private _loadingController: LoadingController,
+    private _alertController: AlertController
   ) {}
 
   ngOnInit() {}
@@ -25,20 +26,52 @@ export class AuthPage implements OnInit {
     return this._isLogin;
   }
 
-  onLogin(): void {
+  private _authenticate(email: string, password: string): void {
     this.isLoading = true;
     this._authService.login();
     /** Create loading controller overlay */
     this._loadingController
-      .create({ keyboardClose: true, message: 'Logging in...' })
+      .create({
+        keyboardClose: true,
+        message: this.isLogin ? 'Logging in...' : 'Signing up...',
+      })
       .then((loadingEl) => {
         loadingEl.present();
-        setTimeout(() => {
-          this._router.navigateByUrl('/places/tabs/discover');
-          loadingEl.dismiss();
-          this.isLoading = false;
-        }, 2000);
+
+        if (this.isLogin) {
+        } else {
+          // Send a request to signup servers
+          this._authService.signup(email, password).subscribe(
+            (response: AuthResponseData) => {
+              this.isLoading = false;
+              loadingEl.dismiss();
+              this._router.navigateByUrl('/places/tabs/discover');
+            },
+            (errRes) => {
+              const code = errRes.error.error.message;
+              let message = 'Could not sign you up, please try again.';
+
+              if (code === 'EMAIL_EXISTS') {
+                message = 'This email address exists already!';
+              }
+
+              this.isLoading = false;
+              loadingEl.dismiss();
+              this._showAlert(message);
+            }
+          );
+        }
       });
+  }
+
+  private _showAlert(message: string) {
+    this._alertController
+      .create({
+        header: 'Authentication failed',
+        message,
+        buttons: [{ text: 'Close', role: 'cancel' }],
+      })
+      .then((alertEl) => alertEl.present());
   }
 
   onSubmit(form: NgForm): void {
@@ -49,11 +82,7 @@ export class AuthPage implements OnInit {
 
     console.log('email', email, 'password', password);
 
-    if (this.isLogin) {
-      // Send a request to login servers
-    } else {
-      // Send a request to signup servers
-    }
+    this._authenticate(email, password);
   }
 
   OnSwitchAuthMode() {
