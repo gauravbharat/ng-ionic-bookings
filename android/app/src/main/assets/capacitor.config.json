@@ -1,5 +1,5 @@
 {
-  "appId": "io.ionic.starter",
+  "appId": "co.veerappa.ionicbookings",
   "appName": "ionic-bookings",
   "bundledWebRuntime": false,
   "npmClient": "npm",
