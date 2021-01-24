@@ -5,10 +5,11 @@ import { Platform } from '@ionic/angular';
 /** Get rid of cordova plugins and use capacitor plugins */
 // import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 // import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { Capacitor, Plugins } from '@capacitor/core';
+import { AppState, Capacitor, Plugins } from '@capacitor/core';
 
 import { AuthService } from './auth/auth.service';
 import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -45,6 +46,12 @@ export class AppComponent implements OnInit, OnDestroy {
         this._previousAuthState = isAuth;
       }
     );
+
+    /** Check Auth State When App Resumes (from background?) */
+    Plugins.App.addListener(
+      'appStateChange',
+      this.checkAuthOnResume.bind(this)
+    );
   }
 
   ngOnDestroy() {
@@ -54,5 +61,18 @@ export class AppComponent implements OnInit, OnDestroy {
   onLogout(): void {
     this._authService.logout();
     // this._router.navigateByUrl('/auth');
+  }
+
+  private checkAuthOnResume(state: AppState) {
+    if (state.isActive) {
+      this._authService
+        .autoLogin()
+        .pipe(take(1))
+        .subscribe((success) => {
+          if (!success) {
+            this.onLogout();
+          }
+        });
+    }
   }
 }
