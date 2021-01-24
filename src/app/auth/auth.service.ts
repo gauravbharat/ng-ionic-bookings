@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, from } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Plugins } from '@capacitor/core';
@@ -19,8 +19,9 @@ export interface AuthResponseData {
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
   private _user = new BehaviorSubject<User>(null);
+  private _activeLogoutTimer: any;
 
   constructor(private _http: HttpClient) {}
 
@@ -56,7 +57,9 @@ export class AuthService {
           return null;
         }
 
-        const parsedData = JSON.parse(storedData) as {
+        console.log('storedData', storedData);
+
+        const parsedData = JSON.parse(storedData.value) as {
           userId: string;
           token: string;
           tokenExpirationDate: string;
@@ -80,6 +83,7 @@ export class AuthService {
       tap((user) => {
         if (user) {
           this._user.next(user);
+          this.autoLogout(user.tokenDuration);
         }
       }),
       map((user) => {
@@ -119,14 +123,15 @@ export class AuthService {
       new Date().getTime() + +userData.expiresIn * 1000
     );
 
-    this._user.next(
-      new User(
-        userData.localId,
-        userData.email,
-        userData.idToken,
-        expirationTime
-      )
+    const user = new User(
+      userData.localId,
+      userData.email,
+      userData.idToken,
+      expirationTime
     );
+
+    this._user.next(user);
+    this.autoLogout(user.tokenDuration);
 
     this._storeAuthData(
       userData.localId,
@@ -153,6 +158,26 @@ export class AuthService {
   }
 
   logout() {
+    if (this._activeLogoutTimer) {
+      clearTimeout(this._activeLogoutTimer);
+    }
     this._user.next(null);
+    Plugins.Storage.remove({ key: 'authData' });
+  }
+
+  private autoLogout(duration: number) {
+    if (this._activeLogoutTimer) {
+      clearTimeout(this._activeLogoutTimer);
+    }
+
+    this._activeLogoutTimer = setTimeout(() => {
+      this.logout();
+    }, duration);
+  }
+
+  ngOnDestroy() {
+    if (this._activeLogoutTimer) {
+      clearTimeout(this._activeLogoutTimer);
+    }
   }
 }

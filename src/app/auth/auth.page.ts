@@ -95,6 +95,7 @@ export class AuthPage implements OnInit {
     console.log('email', email, 'password', password);
 
     this._authenticate(email, password);
+    form.reset();
   }
 
   OnSwitchAuthMode() {
