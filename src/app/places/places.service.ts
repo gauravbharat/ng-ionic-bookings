@@ -30,57 +30,61 @@ export class PlacesService {
   }
 
   fetchPlaces() {
-    return this._http
-      .get<{ [key: string]: PlaceData }>(
-        `https://ing-bookings-default-rtdb.firebaseio.com/offered-places.json`
-      )
-      .pipe(
-        map((resData) => {
-          const places = [];
-          for (const key in resData) {
-            if (resData.hasOwnProperty(key)) {
-              places.push(
-                new Place(
-                  key,
-                  resData[key].title,
-                  resData[key].description,
-                  resData[key].imageUrl,
-                  resData[key].price,
-                  new Date(resData[key].availableFrom),
-                  new Date(resData[key].availableTo),
-                  resData[key].userId
-                )
-              );
-            }
+    return this._authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        return this._http.get<{ [key: string]: PlaceData }>(
+          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places.json?auth=${token}`
+        );
+      }),
+      map((resData) => {
+        const places = [];
+        for (const key in resData) {
+          if (resData.hasOwnProperty(key)) {
+            places.push(
+              new Place(
+                key,
+                resData[key].title,
+                resData[key].description,
+                resData[key].imageUrl,
+                resData[key].price,
+                new Date(resData[key].availableFrom),
+                new Date(resData[key].availableTo),
+                resData[key].userId
+              )
+            );
           }
+        }
 
-          return places;
-        }),
-        tap((places) => {
-          this._places.next(places);
-        })
-      );
+        return places;
+      }),
+      tap((places) => {
+        this._places.next(places);
+      })
+    );
   }
 
   getPlace(placeId: string): Observable<Place> {
-    return this._http
-      .get<Place>(
-        `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json`
-      )
-      .pipe(
-        map((placeData) => {
-          return new Place(
-            placeId,
-            placeData.title,
-            placeData.description,
-            placeData.imageUrl,
-            placeData.price,
-            new Date(placeData.availableFrom),
-            new Date(placeData.availableTo),
-            placeData.userId
-          );
-        })
-      );
+    return this._authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        return this._http.get<Place>(
+          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json?auth=${token}`
+        );
+      }),
+      map((placeData) => {
+        return new Place(
+          placeId,
+          placeData.title,
+          placeData.description,
+          placeData.imageUrl,
+          placeData.price,
+          new Date(placeData.availableFrom),
+          new Date(placeData.availableTo),
+          placeData.userId
+        );
+      })
+    );
   }
 
   addPlace(
@@ -92,7 +96,14 @@ export class PlacesService {
   ) {
     let generatedId: string;
     let newPlace;
-    return this._authService.userId.pipe(
+    let currentToken;
+
+    return this._authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        currentToken = token;
+        return this._authService.userId;
+      }),
       take(1),
       switchMap((userId) => {
         if (!userId) {
@@ -112,7 +123,7 @@ export class PlacesService {
         );
 
         return this._http.post<{ name: string }>(
-          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places.json`,
+          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places.json?auth=${currentToken}`,
           {
             ...newPlace,
             id: null,
@@ -133,7 +144,14 @@ export class PlacesService {
 
   updatePlace(placeId: string, title: string, description: string) {
     let updatedPlaces: Place[];
-    return this.places.pipe(
+    let currentToken;
+
+    return this._authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        currentToken = token;
+        return this.places;
+      }),
       take(1),
       switchMap((places) => {
         if (!places || places.length <= 0) {
@@ -158,7 +176,7 @@ export class PlacesService {
         );
 
         return this._http.put(
-          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json`,
+          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places/${placeId}.json?auth=${currentToken}`,
           { ...updatedPlaces[index], id: null }
         );
       }),
