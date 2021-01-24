@@ -5,6 +5,7 @@ import {
   EventEmitter,
   ViewChild,
   ElementRef,
+  Input,
 } from '@angular/core';
 import {
   Plugins,
@@ -24,6 +25,7 @@ export class ImagePickerComponent implements OnInit {
   selectedImage: string;
   usePicker = false;
 
+  @Input() showPreview = false;
   @Output() imagePick = new EventEmitter<string | File>();
   @ViewChild('filePicker') filePicker: ElementRef<HTMLInputElement>;
 
