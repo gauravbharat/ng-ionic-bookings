@@ -8,7 +8,7 @@
   ></ion-img>
   <ion-button color="primary" (click)="onPickImage()" *ngIf="!selectedImage">
     <ion-icon name="camera" slot="start"></ion-icon>
-    <ion-label>Take Picture</ion-label>
+    <ion-label>{{ usePicker ? 'Pick' : 'Take' }} Picture</ion-label>
   </ion-button>
 </div>
 <ng-container *ngIf="imagePick">

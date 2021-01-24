@@ -48,6 +48,9 @@ export class ImagePickerComponent implements OnInit {
   }
 
   async onPickImage() {
+    /** usePicker check can be removed from here cause after adding @ionic/pwa-elements,
+     * pwa camera plugin is available in web versions albeit the frontal camera
+     */
     if (!Capacitor.isPluginAvailable('Camera') || this.usePicker) {
       this.filePicker.nativeElement.click();
       return;
@@ -67,6 +70,7 @@ export class ImagePickerComponent implements OnInit {
       this.imagePick.emit(image.dataUrl);
     } catch (error) {
       console.log(error, 'error on image capture');
+      if (this.usePicker) this.filePicker.nativeElement.click();
     }
   }
 
