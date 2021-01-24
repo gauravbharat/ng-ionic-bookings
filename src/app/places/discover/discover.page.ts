@@ -6,6 +6,7 @@ import { PlacesService } from '../places.service';
 
 import { Plugins, Capacitor } from '@capacitor/core';
 import { AlertController } from '@ionic/angular';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-discover',
@@ -96,11 +97,12 @@ export class DiscoverPage implements OnInit, OnDestroy {
     //   this.listedLoadedPlaces = this.relevantPlaces?.slice(1);
     // }
 
-    const isShown = (place) =>
-      filter === 'all' || place.userId !== this._authService.userId;
-    this.relevantPlaces = this.loadedPlaces.filter(isShown);
-    this.listedLoadedPlaces = this.relevantPlaces?.slice(1);
-    this._filter = filter;
+    this._authService.userId.pipe(take(1)).subscribe((userId) => {
+      const isShown = (place) => filter === 'all' || place.userId !== userId;
+      this.relevantPlaces = this.loadedPlaces.filter(isShown);
+      this.listedLoadedPlaces = this.relevantPlaces?.slice(1);
+      this._filter = filter;
+    });
 
     /** 
      * this.authService.userId.pipe(take(1)).subscribe(userId => {

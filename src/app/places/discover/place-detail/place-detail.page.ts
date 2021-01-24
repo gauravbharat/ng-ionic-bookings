@@ -8,6 +8,7 @@ import {
   NavController,
 } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/auth.service';
 import { BookingService } from 'src/app/bookings/booking.service';
 
@@ -50,31 +51,44 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
       this.placeId = paramMap.get('placeId');
       this.isLoading = true;
 
-      this._placeSub = this._placesService.getPlace(this.placeId).subscribe(
-        (place) => {
-          this.place = place;
-          this.isBookable = place.userId !== this._authService.userId;
-          this.isLoading = false;
-        },
-        (error) => {
-          this._alertController
-            .create({
-              header: 'An error occurred',
-              message: 'Could not load place.',
-              buttons: [
-                {
-                  text: 'Okay',
-                  handler: () => {
-                    this._router.navigate(['/places/tabs/discover']);
+      let fetchedUserId: string;
+      this._authService.userId
+        .pipe(
+          switchMap((userId) => {
+            if (!userId) {
+              throw new Error('No user found!');
+            }
+
+            fetchedUserId = userId;
+
+            return this._placesService.getPlace(this.placeId);
+          })
+        )
+        .subscribe(
+          (place) => {
+            this.place = place;
+            this.isBookable = place.userId !== fetchedUserId;
+            this.isLoading = false;
+          },
+          (error) => {
+            this._alertController
+              .create({
+                header: 'An error occurred',
+                message: 'Could not load place.',
+                buttons: [
+                  {
+                    text: 'Okay',
+                    handler: () => {
+                      this._router.navigate(['/places/tabs/discover']);
+                    },
                   },
-                },
-              ],
-            })
-            .then((alertEl) => {
-              alertEl.present();
-            });
-        }
-      );
+                ],
+              })
+              .then((alertEl) => {
+                alertEl.present();
+              });
+          }
+        );
     });
   }
 

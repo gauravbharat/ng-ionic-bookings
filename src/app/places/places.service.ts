@@ -91,37 +91,44 @@ export class PlacesService {
     dateTo: Date
   ) {
     let generatedId: string;
-
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      'https://imgs.6sqft.com/wp-content/uploads/2014/06/21042534/Felix_Warburg_Mansion_007.jpg',
-      price,
-      dateFrom,
-      dateTo,
-      this._authService.userId
-    );
-
-    return this._http
-      .post<{ name: string }>(
-        `https://ing-bookings-default-rtdb.firebaseio.com/offered-places.json`,
-        {
-          ...newPlace,
-          id: null,
+    let newPlace;
+    return this._authService.userId.pipe(
+      take(1),
+      switchMap((userId) => {
+        if (!userId) {
+          // return of(null);
+          throw new Error('No user id found!');
         }
-      )
-      .pipe(
-        switchMap((resData) => {
-          generatedId = resData.name;
-          return this.places;
-        }),
-        take(1),
-        tap((places) => {
-          newPlace.id = generatedId;
-          this._places.next(places.concat(newPlace));
-        })
-      );
+
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          'https://imgs.6sqft.com/wp-content/uploads/2014/06/21042534/Felix_Warburg_Mansion_007.jpg',
+          price,
+          dateFrom,
+          dateTo,
+          userId
+        );
+
+        return this._http.post<{ name: string }>(
+          `https://ing-bookings-default-rtdb.firebaseio.com/offered-places.json`,
+          {
+            ...newPlace,
+            id: null,
+          }
+        );
+      }),
+      switchMap((resData) => {
+        generatedId = resData.name;
+        return this.places;
+      }),
+      take(1),
+      tap((places) => {
+        newPlace.id = generatedId;
+        this._places.next(places.concat(newPlace));
+      })
+    );
   }
 
   updatePlace(placeId: string, title: string, description: string) {

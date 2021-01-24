@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
+import { Observable } from 'rxjs';
 import { AuthResponseData, AuthService } from './auth.service';
 
 @Component({
@@ -28,7 +29,6 @@ export class AuthPage implements OnInit {
 
   private _authenticate(email: string, password: string): void {
     this.isLoading = true;
-    this._authService.login();
     /** Create loading controller overlay */
     this._loadingController
       .create({
@@ -38,29 +38,41 @@ export class AuthPage implements OnInit {
       .then((loadingEl) => {
         loadingEl.present();
 
-        if (this.isLogin) {
-        } else {
-          // Send a request to signup servers
-          this._authService.signup(email, password).subscribe(
-            (response: AuthResponseData) => {
-              this.isLoading = false;
-              loadingEl.dismiss();
-              this._router.navigateByUrl('/places/tabs/discover');
-            },
-            (errRes) => {
-              const code = errRes.error.error.message;
-              let message = 'Could not sign you up, please try again.';
+        const authentication: Observable<AuthResponseData> = this.isLogin
+          ? // Send a request to login servers
+            this._authService.login(email, password)
+          : // Send a request to signup servers
+            this._authService.signup(email, password);
 
-              if (code === 'EMAIL_EXISTS') {
-                message = 'This email address exists already!';
-              }
+        authentication.subscribe(
+          (response: AuthResponseData) => {
+            this.isLoading = false;
+            loadingEl.dismiss();
+            this._router.navigateByUrl('/places/tabs/discover');
+          },
+          (errRes) => {
+            const code = errRes.error.error.message;
+            let message = `Could not ${
+              this.isLogin ? 'log you in' : 'sign you up'
+            }, please try again.`;
 
-              this.isLoading = false;
-              loadingEl.dismiss();
-              this._showAlert(message);
+            if (code === 'EMAIL_EXISTS') {
+              message = 'This email address exists already!';
+            } else if (
+              code === 'EMAIL_NOT_FOUND' ||
+              code === 'INVALID_PASSWORD'
+            ) {
+              message = 'Invalid email or password!';
+            } else if (code === 'USER_DISABLED') {
+              message =
+                'The user account has been disabled by an administrator!';
             }
-          );
-        }
+
+            this.isLoading = false;
+            loadingEl.dismiss();
+            this._showAlert(message);
+          }
+        );
       });
   }
 
